@@ -69,14 +69,14 @@ const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({ customerId,
           (ordersData || []).map(async (order) => {
             const { data: statusData } = await supabase
               .from('order_status_log')
-              .select('operational_status')
+              .select('status')
               .eq('order_id', order.order_id)
               .order('created_at', { ascending: false })
               .limit(1);
 
             return {
               ...order,
-              status: statusData?.[0]?.operational_status || 'N/A'
+              status: statusData?.[0]?.status || 'N/A'
             };
           })
         );

@@ -55,14 +55,33 @@ const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({ customerId,
 
     try {
       if (activeTab === 'orders') {
-        const { data, error: fetchError } = await supabase
+        // First, fetch orders without status column
+        const { data: ordersData, error: fetchError } = await supabase
           .from('order_summary_with_dues')
-          .select('order_id, total_amount, status, date')
+          .select('order_id, total_amount, date')
           .eq('customer_id', customerId)
           .order('date', { ascending: false });
 
         if (fetchError) throw fetchError;
-        setOrders(data || []);
+
+        // Then fetch status for each order from order_status_log
+        const ordersWithStatus = await Promise.all(
+          (ordersData || []).map(async (order) => {
+            const { data: statusData } = await supabase
+              .from('order_status_log')
+              .select('operational_status')
+              .eq('order_id', order.order_id)
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            return {
+              ...order,
+              status: statusData?.[0]?.operational_status || 'N/A'
+            };
+          })
+        );
+
+        setOrders(ordersWithStatus);
       } else if (activeTab === 'payments') {
         const { data, error: fetchError } = await supabase
           .from('payments')

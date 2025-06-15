@@ -71,7 +71,7 @@ const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({ customerId,
               .from('order_status_log')
               .select('status')
               .eq('order_id', order.order_id)
-              .order('created_at', { ascending: false })
+              .order('updated_at', { ascending: false })
               .limit(1);
 
             return {
